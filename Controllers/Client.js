@@ -10,9 +10,36 @@ module.exports.renderNewClient = (req, res) => {
 };
 
 module.exports.createClient = async (req, res, next) => {
-  const client = new Client(req.body.client);
-  await client.save();
-  res.redirect(`/client/${client._id}`);
+  try {
+    const { email, username, password } = req.body;
+    const client = new Client({ email, username });
+    const registeredClient = await Client.register(client, password);
+    req.login(registeredClient, (err) => {
+      if (err) return next(err);
+      res.redirect("");
+    });
+  } catch (e) {
+    res.redirect("/register");
+  }
+};
+
+module.exports.renderLogin = (req, res) => {
+  res.render("");
+};
+
+module.exports.login = (req, res) => {
+  const redirectUrl = req.session.returnTo || "";
+  res.redirect(redirectUrl);
+};
+
+module.exports.logout = (req, res, next) => {
+  req.logout(function (e) {
+    if (e) {
+      return next(e);
+    }
+
+    res.redirect("/");
+  });
 };
 
 module.exports.showClient = async (req, res) => {
